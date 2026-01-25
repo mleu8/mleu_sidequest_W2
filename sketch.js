@@ -156,6 +156,8 @@ function draw() {
 
   // Keep blob inside the canvas horizontally
   blob3.x = constrain(blob3.x, blob3.r, width - blob3.r);
+  // Keep blob inside the canvas vertically
+  blob3.y = constrain(blob3.y, blob3.r, height - blob3.r);
 
   // --- Draw the animated blob ---
   blob3.t += blob3.tSpeed;
