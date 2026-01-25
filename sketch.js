@@ -65,22 +65,10 @@ function setup() {
 }
 
 function draw() {
-  // Background color transitions from white (bottom) to pink (top)
-  // Compute normalized t where 0 = resting on floor, 1 = top of canvas
-  let lowY = floorY3 - blob3.r - 1;
-  let t = constrain(map(blob3.y, lowY, 0, 0, 1), 0, 1);
-  let whiteCol = color(255, 255, 255);
-  let pinkCol = color(255, 182, 193);
-  let bgCol = lerpColor(whiteCol, pinkCol, t);
-  background(bgCol);
+  // Background is permanently white
+  background(255);
 
-  // --- Draw all platforms ---
-  fill(200);
-  for (const p of platforms) {
-    rect(p.x, p.y, p.w, p.h);
-  }
-
-  // --- Blob: determine which platform it's over, set radius & color ---
+  // Determine the topmost platform under blob.x (used for platform tinting)
   let chosen = null;
   for (const p of platforms) {
     if (blob3.x >= p.x && blob3.x <= p.x + p.w) {
@@ -88,20 +76,46 @@ function draw() {
     }
   }
 
+  // Find highest platform Y (smallest y value)
+  let highestY = Infinity;
+  for (const p of platforms) {
+    if (p.y < highestY) highestY = p.y;
+  }
+
+  // Normalized t between floor (0) and highest platform (1)
+  let lowY = floorY3 - blob3.r - 1;
+  let tNorm = constrain(map(blob3.y, lowY, highestY - blob3.r, 0, 1), 0, 1);
+
+  // --- Draw all platforms ---
+  for (const p of platforms) {
+    // If the blob is on this platform, tint it toward pink based on platform height
+    if (p === chosen) {
+      let idx = platforms.indexOf(p);
+      let maxIndex = platforms.length - 1;
+      let idxNorm = maxIndex > 0 ? idx / maxIndex : 0;
+      let grey = color(200);
+      let pink = color(255, 182, 193);
+      fill(lerpColor(grey, pink, idxNorm));
+    } else {
+      fill(200);
+    }
+    rect(p.x, p.y, p.w, p.h);
+  }
+
   // Map blob vertical position to a color gradient (blue -> yellow)
   // and compute vertical scale (flatter at bottom, normal at top)
   let blueCol = color(20, 120, 255);
   let yellowCol = color(255, 204, 0);
-  blob3.color = lerpColor(blueCol, yellowCol, t);
-  blob3.scaleY = lerp(0.6, 1.0, t);
+  blob3.color = lerpColor(blueCol, yellowCol, tNorm);
+  blob3.scaleY = lerp(0.6, 1.0, tNorm);
 
   // --- Input: left/right movement ---
   let move = 0;
   if (keyIsDown(65) || keyIsDown(LEFT_ARROW)) move -= 1; // A or ←
   if (keyIsDown(68) || keyIsDown(RIGHT_ARROW)) move += 1; // D or →
-  // Scale horizontal acceleration and max speed by vertical position `t`
-  // (t = 0 at floor, 1 at top). Slower at bottom, faster as blob rises.
-  let speedFactor = lerp(0.5, 1.5, t);
+  // Scale horizontal acceleration and max speed by vertical position `tNorm`
+  // (0 = floor, 1 = highest platform). Slower at bottom, faster as blob rises.
+  let speedFactor = lerp(0.5, 1.5, tNorm);
   let currentAccel = blob3.accel * speedFactor;
   let currentMaxRun = blob3.maxRun * speedFactor;
   blob3.vx += currentAccel * move;
