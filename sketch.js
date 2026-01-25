@@ -88,12 +88,12 @@ function draw() {
     }
   }
 
-  // Map blob vertical position to a color gradient (red -> yellow)
-  // t is already computed above (0 = bottom/floor, 1 = top)
-  // Use lerpColor for smooth transition from red to yellow based on t
-  let redCol = color(255, 0, 0);
+  // Map blob vertical position to a color gradient (blue -> yellow)
+  // and compute vertical scale (flatter at bottom, normal at top)
+  let blueCol = color(20, 120, 255);
   let yellowCol = color(255, 204, 0);
-  blob3.color = lerpColor(redCol, yellowCol, t);
+  blob3.color = lerpColor(blueCol, yellowCol, t);
+  blob3.scaleY = lerp(0.6, 1.0, t);
 
   // --- Input: left/right movement ---
   let move = 0;
@@ -200,8 +200,9 @@ function drawBlobCircle(b) {
     );
 
     const r = b.r + map(n, 0, 1, -b.wobble, b.wobble);
+    const sy = b.scaleY || 1;
 
-    vertex(b.x + cos(a) * r, b.y + sin(a) * r);
+    vertex(b.x + cos(a) * r, b.y + sin(a) * r * sy);
   }
 
   endShape(CLOSE);
