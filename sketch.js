@@ -8,7 +8,7 @@ let blob3 = {
   y: 0,
 
   // Visual properties
-  r: 18.2, // Base radius (start at reduced minimum)
+  r: 26, // Base radius
   points: 48, // Number of points used to draw the blob
   wobble: 7, // Edge deformation amount
   wobbleFreq: 0.9,
@@ -39,9 +39,6 @@ let blob3 = {
 // Each platform is an axis-aligned rectangle (AABB)
 let platforms = [];
 
-// Blob size range: reduce minimum radius by 30% of previous 26 -> 18.2
-blob3.rMin = 18.2;
-blob3.rMax = 40;
 blob3.color = null;
 
 function setup() {
@@ -89,27 +86,12 @@ function draw() {
     }
   }
 
-  if (chosen) {
-    let idx = platforms.indexOf(chosen);
-    const maxIndex = 3;
-    let useIdx = constrain(idx, 0, maxIndex);
-
-    // Blob radius increases as it goes up
-    blob3.r = lerp(blob3.rMin, blob3.rMax, useIdx / maxIndex);
-
-    // Color by platform level
-    if (idx === 0) {
-      blob3.color = color(255, 0, 0);
-    } else if (idx === 1) {
-      blob3.color = color(255, 165, 0);
-    } else if (idx === 3) {
-      blob3.color = color(255, 204, 0);
-    } else {
-      blob3.color = color(20, 120, 255);
-    }
-  } else {
-    blob3.color = color(20, 120, 255);
-  }
+  // Map blob vertical position to a color gradient (red -> yellow)
+  // t is already computed above (0 = bottom/floor, 1 = top)
+  // Use lerpColor for smooth transition from red to yellow based on t
+  let redCol = color(255, 0, 0);
+  let yellowCol = color(255, 204, 0);
+  blob3.color = lerpColor(redCol, yellowCol, t);
 
   // --- Input: left/right movement ---
   let move = 0;
