@@ -8,7 +8,7 @@ let blob3 = {
   y: 0,
 
   // Visual properties
-  r: 26, // Base radius
+  r: 18.2, // Base radius (start at reduced minimum)
   points: 48, // Number of points used to draw the blob
   wobble: 7, // Edge deformation amount
   wobbleFreq: 0.9,
@@ -39,15 +39,10 @@ let blob3 = {
 // Each platform is an axis-aligned rectangle (AABB)
 let platforms = [];
 
-// Simple rock that sits on platforms and changes color/height by level
-let rock = {
-  x: 150, // horizontal position (will determine which platform it's on)
-  w: 46, // keep width constant
-  // reduce minimum height by 30% from an assumed original of 40 -> 28
-  hMin: 28,
-  hMax: 80,
-  h: 28,
-};
+// Blob size range: reduce minimum radius by 30% of previous 26 -> 18.2
+blob3.rMin = 18.2;
+blob3.rMax = 40;
+blob3.color = null;
 
 function setup() {
   createCanvas(640, 360);
@@ -73,7 +68,12 @@ function setup() {
 }
 
 function draw() {
-  background(240);
+  // Background color transitions from white (bottom) to yellow (top)
+  // Compute normalized t where 0 = resting on floor, 1 = top of canvas
+  let lowY = floorY3 - blob3.r - 1;
+  let t = constrain(map(blob3.y, lowY, 0, 0, 1), 0, 1);
+  let blue = lerp(255, 0, t);
+  background(255, 255, blue);
 
   // --- Draw all platforms ---
   fill(200);
@@ -81,41 +81,34 @@ function draw() {
     rect(p.x, p.y, p.w, p.h);
   }
 
-  // --- Rock: determine which platform it's over, set height & color, draw ---
-  // Choose the topmost platform under rock.x (smallest y)
+  // --- Blob: determine which platform it's over, set radius & color ---
   let chosen = null;
   for (const p of platforms) {
-    if (rock.x >= p.x && rock.x <= p.x + p.w) {
+    if (blob3.x >= p.x && blob3.x <= p.x + p.w) {
       if (chosen === null || p.y < chosen.y) chosen = p;
     }
   }
 
   if (chosen) {
-    // Find index to map level -> height
     let idx = platforms.indexOf(chosen);
-    // We'll treat index 0..3 as increasing height levels (3 is the highest step)
     const maxIndex = 3;
     let useIdx = constrain(idx, 0, maxIndex);
 
-    // rock height increases as it goes up
-    rock.h = lerp(rock.hMin, rock.hMax, useIdx / maxIndex);
+    // Blob radius increases as it goes up
+    blob3.r = lerp(blob3.rMin, blob3.rMax, useIdx / maxIndex);
 
-    // place rock so its bottom rests on the platform
-    let rockTop = chosen.y - rock.h;
-
-    // color by specific platform levels
+    // Color by platform level
     if (idx === 0) {
-      fill(255, 0, 0); // red on floor (lowest level)
+      blob3.color = color(255, 0, 0);
     } else if (idx === 1) {
-      fill(255, 165, 0); // orange on next platform up
+      blob3.color = color(255, 165, 0);
     } else if (idx === 3) {
-      fill(255, 204, 0); // yellow on max height platform
+      blob3.color = color(255, 204, 0);
     } else {
-      fill(150); // default grey
+      blob3.color = color(20, 120, 255);
     }
-
-    // Draw the rock (keep width constant, vary height)
-    rect(rock.x - rock.w / 2, rockTop, rock.w, rock.h);
+  } else {
+    blob3.color = color(20, 120, 255);
   }
 
   // --- Input: left/right movement ---
@@ -201,7 +194,8 @@ function overlap(a, b) {
 
 // Draws the blob using Perlin noise for a soft, breathing effect
 function drawBlobCircle(b) {
-  fill(20, 120, 255);
+  if (b.color) fill(b.color);
+  else fill(20, 120, 255);
   beginShape();
 
   for (let i = 0; i < b.points; i++) {
