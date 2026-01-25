@@ -97,11 +97,16 @@ function draw() {
   let move = 0;
   if (keyIsDown(65) || keyIsDown(LEFT_ARROW)) move -= 1; // A or ←
   if (keyIsDown(68) || keyIsDown(RIGHT_ARROW)) move += 1; // D or →
-  blob3.vx += blob3.accel * move;
+  // Scale horizontal acceleration and max speed by vertical position `t`
+  // (t = 0 at floor, 1 at top). Slower at bottom, faster as blob rises.
+  let speedFactor = lerp(0.5, 1.5, t);
+  let currentAccel = blob3.accel * speedFactor;
+  let currentMaxRun = blob3.maxRun * speedFactor;
+  blob3.vx += currentAccel * move;
 
   // --- Apply friction and clamp speed ---
   blob3.vx *= blob3.onGround ? blob3.frictionGround : blob3.frictionAir;
-  blob3.vx = constrain(blob3.vx, -blob3.maxRun, blob3.maxRun);
+  blob3.vx = constrain(blob3.vx, -currentMaxRun, currentMaxRun);
 
   // --- Apply gravity ---
   blob3.vy += blob3.gravity;
