@@ -65,12 +65,14 @@ function setup() {
 }
 
 function draw() {
-  // Background color transitions from white (bottom) to yellow (top)
+  // Background color transitions from white (bottom) to pink (top)
   // Compute normalized t where 0 = resting on floor, 1 = top of canvas
   let lowY = floorY3 - blob3.r - 1;
   let t = constrain(map(blob3.y, lowY, 0, 0, 1), 0, 1);
-  let blue = lerp(255, 0, t);
-  background(255, 255, blue);
+  let whiteCol = color(255, 255, 255);
+  let pinkCol = color(255, 182, 193);
+  let bgCol = lerpColor(whiteCol, pinkCol, t);
+  background(bgCol);
 
   // --- Draw all platforms ---
   fill(200);
