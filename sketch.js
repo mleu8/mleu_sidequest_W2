@@ -39,6 +39,16 @@ let blob3 = {
 // Each platform is an axis-aligned rectangle (AABB)
 let platforms = [];
 
+// Simple rock that sits on platforms and changes color/height by level
+let rock = {
+  x: 150, // horizontal position (will determine which platform it's on)
+  w: 46, // keep width constant
+  // reduce minimum height by 30% from an assumed original of 40 -> 28
+  hMin: 28,
+  hMax: 80,
+  h: 28,
+};
+
 function setup() {
   createCanvas(640, 360);
 
@@ -69,6 +79,43 @@ function draw() {
   fill(200);
   for (const p of platforms) {
     rect(p.x, p.y, p.w, p.h);
+  }
+
+  // --- Rock: determine which platform it's over, set height & color, draw ---
+  // Choose the topmost platform under rock.x (smallest y)
+  let chosen = null;
+  for (const p of platforms) {
+    if (rock.x >= p.x && rock.x <= p.x + p.w) {
+      if (chosen === null || p.y < chosen.y) chosen = p;
+    }
+  }
+
+  if (chosen) {
+    // Find index to map level -> height
+    let idx = platforms.indexOf(chosen);
+    // We'll treat index 0..3 as increasing height levels (3 is the highest step)
+    const maxIndex = 3;
+    let useIdx = constrain(idx, 0, maxIndex);
+
+    // rock height increases as it goes up
+    rock.h = lerp(rock.hMin, rock.hMax, useIdx / maxIndex);
+
+    // place rock so its bottom rests on the platform
+    let rockTop = chosen.y - rock.h;
+
+    // color by specific platform levels
+    if (idx === 0) {
+      fill(255, 0, 0); // red on floor (lowest level)
+    } else if (idx === 1) {
+      fill(255, 165, 0); // orange on next platform up
+    } else if (idx === 3) {
+      fill(255, 204, 0); // yellow on max height platform
+    } else {
+      fill(150); // default grey
+    }
+
+    // Draw the rock (keep width constant, vary height)
+    rect(rock.x - rock.w / 2, rockTop, rock.w, rock.h);
   }
 
   // --- Input: left/right movement ---
