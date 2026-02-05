@@ -12,7 +12,7 @@ Mackenzie Leu
 
 ## Description
 
-Adds several rectangular platforms. The blob is drawn as a noisy circle but collides using a simple axis-aligned bounding box (AABB). X and Y are resolved separately to keep behaviour predictable and teachable. As the blob moves, it experiences different emotions
+Adds several rectangular platforms. The blob is drawn as a noisy circle but collides using a simple axis-aligned bounding box (AABB). X and Y are resolved separately to keep behaviour predictable and teachable. As the blob moves, it experiences different emotions. For example, it moves slower when it travels on the lower levels and as it moves up the screen it moves faster. The colour also adjusts as it gets higher. 
 
 ---
 
@@ -35,5 +35,6 @@ N/A
 ## GenAI
 
 The code was written by Dr. Karen Cochrane but she used GenAI to write the comments.
+GenAI was used by Mackenzie Leu to edit the code to reflect the emotional change
 
 ---
